@@ -22,7 +22,7 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ```lua
 {
-  "ewannic/notelink.nvim",
+  "dataewan/notelink.nvim",
   dependencies = { "nvim-telescope/telescope.nvim" },
   cmd = { "LinkToNote", "NewLinkedNote" },
   -- opts = {}, -- optional, see Configuration
