@@ -124,15 +124,19 @@ end
 
 -- :NewLinkedNote {words} — create a timestamped markdown note in the current
 -- directory named after {words}, insert a link to it at the cursor, and open
--- it in a new tab.
+-- it in a new tab. If no title is provided, prompts the user for one.
 function M.new_linked_note(title)
   title = vim.trim(title or "")
   if title == "" then
-    vim.notify("notelink: :NewLinkedNote requires a title", vim.log.levels.ERROR)
+    vim.ui.input({ prompt = "Note title: " }, function(input)
+      if input and vim.trim(input) ~= "" then
+        M.new_linked_note(vim.trim(input))
+      end
+    end)
     return
   end
 
-  local slug = title:gsub("%s+", "-")
+  local slug = title:lower():gsub("[^%w%s-]", ""):gsub("%s+", "-")
   local timestamp = os.date(M.config.date_format)
   local filename = string.format("%s-%s.md", timestamp, slug)
   local dir = current_dir()
