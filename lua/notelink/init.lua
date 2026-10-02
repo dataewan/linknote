@@ -6,7 +6,7 @@ M.config = {
   -- Timestamp prepended to new note filenames. Default: YYYYMMDDHHMM.
   date_format = "%Y%m%d%H%M",
   -- Contents a new note is seeded with. `title` is the words you passed to
-  -- :NewLinkedNote. Return a list of lines.
+  -- :NewLinkedNote or :NewNote. Return a list of lines.
   new_note_template = function(title)
     return { "# " .. title, "" }
   end,
@@ -122,6 +122,36 @@ function M.link_to_note()
     :find()
 end
 
+-- Create a timestamped markdown note in the current directory named after
+-- `title`, seeded from the template. `cmd_name` is used in error messages.
+-- Returns (fullpath, filename, title), or nil after notifying on error.
+local function create_note(title, cmd_name)
+  title = vim.trim(title or "")
+  if title == "" then
+    vim.notify("notelink: :" .. cmd_name .. " requires a title", vim.log.levels.ERROR)
+    return nil
+  end
+
+  local slug = title:lower():gsub("[^%w%s-]", ""):gsub("%s+", "-")
+  local timestamp = os.date(M.config.date_format)
+  local filename = string.format("%s-%s.md", timestamp, slug)
+  local dir = current_dir()
+  local fullpath = dir .. "/" .. filename
+
+  if uv.fs_stat(fullpath) then
+    vim.notify("notelink: file already exists: " .. filename, vim.log.levels.ERROR)
+    return nil
+  end
+
+  local ok, err = pcall(vim.fn.writefile, M.config.new_note_template(title), fullpath)
+  if not ok then
+    vim.notify("notelink: failed to write " .. filename .. ": " .. tostring(err), vim.log.levels.ERROR)
+    return nil
+  end
+
+  return fullpath, filename, title
+end
+
 -- :NewLinkedNote {words} — create a timestamped markdown note in the current
 -- directory named after {words}, insert a link to it at the cursor, and open
 -- it in a new tab. If no title is provided, prompts the user for one.
@@ -135,25 +165,21 @@ function M.new_linked_note(title)
     end)
     return
   end
-
-  local slug = title:lower():gsub("[^%w%s-]", ""):gsub("%s+", "-")
-  local timestamp = os.date(M.config.date_format)
-  local filename = string.format("%s-%s.md", timestamp, slug)
-  local dir = current_dir()
-  local fullpath = dir .. "/" .. filename
-
-  if uv.fs_stat(fullpath) then
-    vim.notify("notelink: file already exists: " .. filename, vim.log.levels.ERROR)
+  local fullpath, filename, trimmed = create_note(title, "NewLinkedNote")
+  if not fullpath then
     return
   end
+  insert_link(trimmed, "./" .. filename)
+  open_in_tab(fullpath)
+end
 
-  local ok, err = pcall(vim.fn.writefile, M.config.new_note_template(title), fullpath)
-  if not ok then
-    vim.notify("notelink: failed to write " .. filename .. ": " .. tostring(err), vim.log.levels.ERROR)
+-- :NewNote {words} — create a timestamped markdown note in the current
+-- directory named after {words} and open it in a new tab. No link is inserted.
+function M.new_note(title)
+  local fullpath = create_note(title, "NewNote")
+  if not fullpath then
     return
   end
-
-  insert_link(title, "./" .. filename)
   open_in_tab(fullpath)
 end
 

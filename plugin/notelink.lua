@@ -28,3 +28,10 @@ end, {
   range = true,
   desc = "Create a new timestamped markdown note, link to it, and open it in a new tab",
 })
+
+vim.api.nvim_create_user_command("NewNote", function(opts)
+  require("notelink").new_note(opts.args)
+end, {
+  nargs = "+",
+  desc = "Create a new timestamped markdown note and open it in a new tab",
+})

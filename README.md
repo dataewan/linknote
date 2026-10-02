@@ -1,6 +1,6 @@
 # notelink.nvim
 
-A tiny Neovim plugin for linking markdown notes together. It gives you two
+A tiny Neovim plugin for linking markdown notes together. It gives you three
 commands for working with a flat directory of markdown notes:
 
 - **`:LinkToNote`** — pick an existing markdown file from the current
@@ -8,6 +8,8 @@ commands for working with a flat directory of markdown notes:
   insert a link to it at the cursor, and open it in a new tab.
 - **`:NewLinkedNote {words}`** — create a new timestamped markdown note named
   after `{words}`, insert a link to it at the cursor, and open it in a new tab.
+- **`:NewNote {words}`** — same as `:NewLinkedNote`, but without inserting a
+  link. Just creates the note and opens it in a new tab.
 
 Links are inserted as bare markdown: `[title](./the-note.md)`.
 
@@ -24,7 +26,7 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 {
   "dataewan/linknote",
   dependencies = { "nvim-telescope/telescope.nvim" },
-  cmd = { "LinkToNote", "NewLinkedNote" },
+  cmd = { "LinkToNote", "NewLinkedNote", "NewNote" },
   -- opts = {}, -- optional, see Configuration
 }
 ```
@@ -55,6 +57,18 @@ spaces in `{words}` become `-`, and the filename is prefixed with the current
 timestamp (`YYYYMMDDHHMM` by default) to avoid collisions. A link
 `[my great idea](./202607281230-my-great-idea.md)` is inserted at the cursor,
 the file is seeded with `# my great idea`, and it opens in a new tab.
+
+### `:NewNote {words}`
+
+```
+:NewNote my great idea
+```
+
+Creates and seeds `202607281230-my-great-idea.md` exactly like
+`:NewLinkedNote` and opens it in a new tab, but doesn't insert a link anywhere.
+Handy for starting a note from a buffer that isn't itself a note. The note is
+created in the current file's directory, or the working directory if the
+current buffer has no file.
 
 ## Configuration
 
