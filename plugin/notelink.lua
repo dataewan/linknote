@@ -13,7 +13,7 @@ vim.api.nvim_create_user_command("NewLinkedNote", function(opts)
   local title = opts.args
 
   -- If no args provided but a visual selection exists, use selected text as title
-  if title == "" and opts.line1 and opts.line2 then
+  if title == "" and opts.range > 0 then
     local lines = vim.fn.getline(opts.line1, opts.line2)
     if lines and #lines > 0 then
       title = table.concat(lines, " ")
